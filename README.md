@@ -4,13 +4,13 @@ An ESP-IDF Bluetooth Phone Book Access Profile client component for ESP32 Classi
 
 ## Status
 
-This is the initial extracted component release (`0.1.0`). It targets ESP-IDF 5.x and the Bluedroid PBAP APIs.
+This is the initial extracted component release (`0.1.0`). It targets ESP-IDF 6.0.2 or newer and the Bluedroid PBAP APIs.
 
 The component is independent of application UART and PC transport code. Phone-book data and status events are delivered through callbacks.
 
 ## Requirements
 
-- ESP-IDF 5.x
+- ESP-IDF 6.0.2 or newer
 - ESP32 target with Bluetooth Classic support
 - Bluedroid enabled in the project configuration
 - PBAP support enabled by the selected ESP-IDF version
