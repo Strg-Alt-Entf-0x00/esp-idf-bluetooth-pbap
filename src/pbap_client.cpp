@@ -21,6 +21,7 @@ bool initialized = false;
 bool connected = false;
 bool connecting = false;
 bool sync_in_progress = false;
+bool deinitializing = false;
 EventCallback event_callback = nullptr;
 DataCallback data_callback = nullptr;
 
@@ -43,11 +44,6 @@ void connect_task(void* argument) {
     vTaskDelete(nullptr);
 }
 
-void sync_task(void*) {
-    vTaskDelay(pdMS_TO_TICKS(100));
-    sync_contacts();
-    vTaskDelete(nullptr);
-}
 }
 
 static void callback(esp_pbac_event_t event, esp_pbac_param_t* param) {
@@ -56,12 +52,14 @@ static void callback(esp_pbac_event_t event, esp_pbac_param_t* param) {
     switch (event) {
     case ESP_PBAC_INIT_EVT:
         initialized = true;
+        deinitializing = false;
         break;
     case ESP_PBAC_DEINIT_EVT:
         initialized = false;
         connected = false;
         connecting = false;
         sync_in_progress = false;
+        deinitializing = false;
         connection_handle = ESP_PBAC_INVALID_HANDLE;
         break;
     case ESP_PBAC_CONNECTION_STATE_EVT:
@@ -69,9 +67,7 @@ static void callback(esp_pbac_event_t event, esp_pbac_param_t* param) {
         connection_handle = connected ? param->conn_stat.handle : ESP_PBAC_INVALID_HANDLE;
         ESP_LOGI(TAG, "PBAP %s, reason=%d", connected ? "connected" : "disconnected",
                  param->conn_stat.reason);
-        if (connected) {
-            xTaskCreate(sync_task, "pbap-sync", 3072, nullptr, 4, nullptr);
-        } else {
+        if (!connected) {
             emit_event("{\"event\":\"pbap_disconnected\"}");
         }
         break;
@@ -103,6 +99,7 @@ static void callback(esp_pbac_event_t event, esp_pbac_param_t* param) {
 
 esp_err_t init() {
     if (initialized) return ESP_OK;
+    deinitializing = false;
     esp_err_t result = esp_pbac_register_callback(callback);
     if (result != ESP_OK) return result;
     result = esp_pbac_init();
@@ -110,8 +107,25 @@ esp_err_t init() {
     return result;
 }
 
+esp_err_t deinit() {
+    if (!initialized) return ESP_OK;
+    deinitializing = true;
+    sync_in_progress = false;
+    connecting = false;
+    const esp_err_t result = esp_pbac_deinit();
+    if (result != ESP_OK) {
+        deinitializing = false;
+        return result;
+    }
+    initialized = false;
+    connected = false;
+    connection_handle = ESP_PBAC_INVALID_HANDLE;
+    return ESP_OK;
+}
+
 esp_err_t connect(const uint8_t* address) {
-    if (!initialized || !address) return ESP_ERR_INVALID_ARG;
+    if (!initialized || deinitializing) return ESP_ERR_INVALID_STATE;
+    if (!address) return ESP_ERR_INVALID_ARG;
     if (connected || connecting) return ESP_OK;
     auto* pending_address = new uint8_t[6];
     std::memcpy(pending_address, address, 6);
@@ -125,7 +139,8 @@ esp_err_t connect(const uint8_t* address) {
 }
 
 esp_err_t disconnect() {
-    if (!connected) return ESP_OK;
+    if (!initialized) return ESP_ERR_INVALID_STATE;
+    if (!connected || connection_handle == ESP_PBAC_INVALID_HANDLE) return ESP_OK;
     esp_err_t result = esp_pbac_disconnect(connection_handle);
     connected = false;
     connecting = false;

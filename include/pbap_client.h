@@ -10,6 +10,7 @@ using EventCallback = void (*)(const char* message);
 using DataCallback = void (*)(const uint8_t* data, size_t length, bool final);
 
 esp_err_t init();
+esp_err_t deinit();
 esp_err_t connect(const uint8_t* address);
 esp_err_t disconnect();
 esp_err_t sync_contacts();
