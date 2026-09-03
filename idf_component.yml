@@ -1,0 +1,10 @@
+version: "0.1.0"
+description: "Bluetooth Phone Book Access Profile client for ESP-IDF"
+license: "Apache-2.0"
+url: "https://github.com/Strg-Alt-Entf-0x00/esp-idf-bluetooth-pbap"
+repository: "https://github.com/Strg-Alt-Entf-0x00/esp-idf-bluetooth-pbap.git"
+issues: "https://github.com/Strg-Alt-Entf-0x00/esp-idf-bluetooth-pbap/issues"
+targets:
+  - esp32
+dependencies:
+  idf: ">=5.0"
