@@ -1,5 +1,7 @@
 # ESP-IDF Bluetooth PBAP
 
+[Changelog](CHANGELOG.md)
+
 An ESP-IDF Bluetooth Phone Book Access Profile client component for ESP32 Classic Bluetooth.
 
 ## Status
