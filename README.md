@@ -1,0 +1,43 @@
+# ESP-IDF Bluetooth PBAP
+
+[Changelog](CHANGELOG.md)
+
+An ESP-IDF Bluetooth Phone Book Access Profile client component for ESP32 Classic Bluetooth.
+
+## Status
+
+This is the initial extracted component release (`0.1.0`). It targets ESP-IDF 6.0.2 or newer and the Bluedroid PBAP APIs.
+
+The component is independent of application UART and PC transport code. Phone-book data and status events are delivered through callbacks.
+
+## Requirements
+
+- ESP-IDF 6.0.2 or newer
+- ESP32 target with Bluetooth Classic support
+- Bluedroid enabled in the project configuration
+- PBAP support enabled by the selected ESP-IDF version
+
+## Integration
+
+Include the public header:
+
+```cpp
+#include "pbap_client.h"
+```
+
+Register callbacks before connecting:
+
+```cpp
+pbap_client::register_event_callback(on_event);
+pbap_client::register_data_callback(on_phonebook_data);
+pbap_client::init();
+pbap_client::connect(remote_address);
+```
+
+Phone-book data is delivered in chunks. The `final` argument marks the last chunk of a transfer. See `include/pbap_client.h` for the complete API.
+
+## License
+
+This project is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
+- **Free for noncommercial use**: Personal, educational, research, and hobbyist projects are completely free.
+- **Commercial use**: Not permitted without prior authorization. For commercial inquiries, please contact the author via GitHub.
